@@ -1,0 +1,713 @@
+﻿//regular Expression
+
+Route::get('issue2/{id2}',function($id2){
+    echo "$id2";
+})->where(['id2'=>'[a-zA-Z]+']);
+
+Route::get('user/{id}/{name}', function ($id, $name) {
+    //
+})->where(['id' => '[0-9]+', 'name' => '[a-z]+']);
+
+---------------------------------------------------
+//name route
+Route::get('name1',function(){
+    echo "nameRoute";
+})->name('profile');
+
+Route::get('name2',function(){
+   //c1 return redirect()->route('profile');
+   //c2 return redirect('profile');
+});
+
+---------------------------------------------------
+//Group Route
+Route Prefixes
+Route::prefix('admin')->group(function(){
+    --------------------------------
+    Route::get('child/1',function(){
+        echo "This is Child1";
+    });
+    --------------------------------
+    Route::get('child/2',function(){
+        echo "This is Child2";
+    });
+});
+
+   if you want show link1: http://localhost:8080/Mylaravel/public/admin/child/1
+   if you want show link2: http://localhost:8080/Mylaravel/public/admin/child/2
+
+----------------------------------------------------
+//Controller
+
+Controllers are strored in the app/Http/Controllers
+* multi Action Controllers
+Create: php artisan make:controller <ControllerName>
+
+class lessCon1 extends Controller
+{
+    //
+    public function Hello($id){
+        echo "HelloHoang $id";
+    }
+}
+Route::get('issue1/{id}','lessCon1@Hello');
+
+* Single action Controllers
+Create: php artisan make:controller <ControllerName> --invokable
+
+//Request
+Route::get('request1/hoang','UserController@store');
+class UserController extends Controller
+{
+    //store
+    public function store(Request $request){
+        echo $path =$request ->path(); 
+        //The is method allows you to verify that the incoming request path matches a given pattern.
+        //You may use the * character as a wildcard when utilizing this method:
+        
+	if ($request->is('request1/*')) {
+            echo "Yes";
+        }
+        else
+            echo "No";
+        echo "<br>";
+
+        //The url method will return the URL without the query string,
+        // while the fullUrl method includes the query string:
+
+        echo $url = $request->url();
+        echo "<br>";
+        echo $fullurl = $request->fullUrl();
+        echo "<br>";
+
+        // method
+
+        echo $method = $request->method();
+        if ($request->isMethod('post')) {
+            //
+        }
+    }
+}
+
+------------------------------------------------
+//Send and receive id Request
+Route::get('request2','lessCon1@getRequest');
+Route::post('request2','lessCon1@postRequest');
+
+public function getRequest(){
+        return view('formRequest');
+    }
+//get value from form
+public function postRequest(Request $request){
+        $input = $request->all();
+        echo"<pre>";
+        print_r($input);
+        echo"</pre>";
+        echo"<br>";
+ }
+
+//validate form
+Route::get('request2','lessCon1@getRequest');
+Route::post('request2','lessCon1@postRequest');
+   // controller
+public function getRequest(){
+        return view('formRequest');
+    }
+
+    public function postRequest(Request $request){
+        // $input = $request->all();
+        $validatedData = $request->validate([
+            'UserN' => 'required|min:5',
+            'Pass' => 'required'
+        ],[
+            'UserN.required'=>'Please Enter UserName...',
+            'UserN.min'=>'Please Enter more than 5 characters...',
+            'Pass.required'=>'Please Enter Password'
+        ]);
+    }
+  blade.php
+<!DOCTYPE html> 
+<html>
+    <head>
+        <title>Request1</title>
+    </head>
+    <body>
+        @if(count($errors)>0)  // $erors sẽ tự động tạo
+            @foreach($errors->all() as $error)
+                <strong>{{$error}}</strong>
+                <br>
+            @endforeach
+
+        @endif
+        <div class="content">
+            <form action="#" method="POST">
+                @csrf  // bắt buộc để hiển thị ra dữ liệu
+                <label>UserName: <input type="text"  placeholder="UserName" name="UserN"/></label>
+
+                @if ($errors->has('UserN'))
+                    <strong>{{$errors->first('UserN')}}</strong>
+                @endif
+
+                <br>
+                <label>Password: <input type="text"  placeholder="Password" name="Pass"/></label>
+
+                @if ($errors->has('Pass'))
+                    <strong>{{$errors->first('Pass')}}</strong>
+                @endif
+                
+                <br>
+                <input  type="submit" value="Send"/>
+            </form>
+        </div>
+    </body>
+</html>
+
+
+----------------------------------------------
+//File Upload
+//web
+Route::get('Uploadfile','UploadfileController@getUpload');
+Route::post('upload','UploadfileController@postUpload');
+//controller
+class UploadfileController extends Controller
+{
+    //
+    public function getUpload(){
+        return view('Uploadfile'); //view ban đầu
+    }
+    public function postUpload(Request $request){
+        if ($request->hasFile('img')) {  // check filename = 'img'
+            echo "success";
+            echo "<br>";
+            echo  $request->file('img')->store('img'); // save folder img in storage//app
+
+        }  
+        else
+            echo "No";
+    }
+}
+//blade.php
+<form action="upload" method="post" enctype="multipart/form-data">
+@csrf <!--  -->
+<!--  -->
+<input type="file" name="img" />
+<input type="submit" value="Upload file" />
+
+</form>
+
+
+----------------------------------------------------
+//Responses
+Redirecting to name Routes
+
+Route::get('Responses1',function(){
+    echo "first";
+})->name('Ex1');
+Route::get('Responses2',function(){
+    return redirect()->route('Ex1');
+});
+
+if has parameters
+
+Route::get('Responses1/{id}',function($id){
+    echo "first $id";
+})->name('Ex1');
+Route::get('Responses2',function(){
+    return redirect()->route('Ex1', ['id' => 1]);  1 ở đây là tham số muốn truyền vào
+});
+
+--------------------------------------------------
+//view
+
+if has parameters
+//view
+Route::get('Greeting/{id}',function($id){
+    return view ('demoview1',['name'=>$id,'last'=>'Lu']);
+});
+//blade.php
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+    
+        </title>
+    </head>
+        <body>
+        <h1>Hello, {{ $name }}</h1>
+	<h1>Hello, {{ $last }}</h1>
+        </body>
+</html>
+
+-----------------------------
+// MVC (Model View Controller 
+
+--------------------------------------------------------
+//Blade Template
+
+//Migration
+
+php artisan make:migration <MigrateName>  : Tạo file migrate với artisan
+	<MigrateName> phải theo cú pháp: create_Name_table
+php artisan migrate : Thực thi file migrate
+php artisan migrate:rollback--step=1 : Hủy bỏ việc thực thi của migration trước với step 1
+php artisan migrate:reset: Hủy bỏ hết công việc của migration
+php artisan migrate:refresh /nghĩa là đầu tiên sẽ rollback (xóa hết migrate) sau đó thực thi tạo lại các bảng cùng lúc
+Nếu tạo tên bảng không theo cú pháp thì dùng
+php artisan make:migration <MigrateName> - create =<tableName>
+
+--------------------------------------------
+//Querybuilder
+Thực hiện thao tác với database
+
+----------------------------------------------------------
+//Seeder
+
+Chay seed rieng
+php artisan db:seed --class = <seederName>
+
+//model
+
+tao model:
+	php artisan make:model <modelName>
+thuoc tinh quan trong
+	
+- tạo liên kết bảng: protected $table = '<tableName>'
+- khai báo khóa chính: protected $primaryKey = 'id_tableName'
+- bảng có sử dụng timestamps: public $timestamps = false;  //không ghi cái này mặc định là true
+* các câu truy vấn trong model
+-lấy toàn bộ dữ liệu trong bảng: Model::all()
+-lấy 1 dòng dữ liệu thông qua khóa chính: Model::find(1)
+ 
+
+
+
+
+
+
+
+------------------
+<?php
+
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group which
+| contains the "web" middleware group. Now create something great!
+|
+*/
+
+Route::get('', function () {
+    return view('welcome');
+});
+
+
+Route::get('hoang', 'Mycontroller1@Xinchao');
+
+// Route::get('KhoaPham',function(){
+//     echo "t nho may";
+// });
+    //or sau khi taoj controller
+    Route::get('KhoaPham','Mycontroller1@XinchaoKhoaPham');
+
+
+//truyền tham số trên route
+// Route::get('xinchao/{name}', function($name){
+//     echo "Xin chao $name";
+// });
+    Route::get('xinchao/{name}','Mycontroller1@Xinchao3');
+// Route::get('xinchao/{name}/{year}',function($name,$year){
+//     echo "xin chao $name vao nam $year";
+// });
+
+    Route::get('xinchao/{name}/{year}','Mycontroller2');
+
+//Truyền tham số mặc định
+        // Route::get('xinchao/{name?}', function($name='NguyennuanHoang'){
+        //     echo "Xin chao $name";
+        // });
+
+        // //Định danh cho route
+        // Route::get('hello', function(){
+        //     echo "Hello";
+        // });
+
+        // Route::get('xinchao', function(){
+        //     echo "Xin chao";
+        // });
+
+//regular expression
+        // Route::get('user/{name}', function ($name) {
+        //     echo "Hoangday";
+        // })->where('name', '[A-Za-z]+');
+        Route::get('user/{name}','Mycontroller1@Xinchao5')->where('name', '[A-Za-z]+');
+
+
+        // Route::get('user/{id}',function($id){
+        //     echo "user $id";
+        // })->where('id','[0-9]+');
+
+        // Route::get('user/{id}/{name}',function($id,$name){
+        //     echo "Xin chao $id->$name";
+        // })->where(['id'=>'[0-9]+','name'=>'[a-z]+']);
+
+//Name Route
+
+            // Route::get('trangdich',function(){
+            //     echo "Day la trang dich";
+            // })->name ('dich');
+
+            // Route::get('trangnguon', function(){
+            //     return redirect()->route('dich'); //chuyển trang thông qua tên định danh
+            //     // return redirect('trangdich');  //chuyển trang thông qua URL
+            // });
+
+//Group Route;
+//  Router Prefixes
+                Route::prefix('admin')->group(function(){
+                    // Goi User1 thong qua: "/admin/user1"
+                    Route::get('user1',function(){
+                        echo "Chao User1";
+                    });
+                    Route::get('user2',function(){
+                        echo "Chao User2";
+                    });
+                });
+
+
+                
+  //Lesson 05 view
+            Route::get('view1','Mycontroller1@View1');
+
+
+// Leson 06 Validate Request
+    Route::get('Validate','validateRequest@GetVali');
+    Route::post('Validate','validateRequest@PostVali');
+
+//Session
+
+    // Tao session
+    Route::get('session1',function(){
+        session()->put ('name1','Hoang');
+        session()->put ('name2','Hao');
+    });
+    //Lay session
+    Route::get('session2',function(){
+        echo session('name1');
+        echo session('name2');
+    });
+    //kiem tra ton tai hay k
+    Route::get('session3',function(){
+        if(session()->has('name1')){
+            echo "Ton tai name1";
+        }
+        else
+            echo "Khong Ton tai name1";
+        if(session()->has('name2')){
+            echo "Ton tai name2";
+        }
+        else
+            echo "Khong Ton tai name2";
+    });
+    //Xoa session
+    Route::get('session4',function(){
+        session()->flush();
+    });
+
+
+    //lesson 8: MiddleWare
+    Route::get('Middleware1',function(){
+        return "Hello Hoang";
+    })->middleware('check1');
+
+    Route::get('Middeware2',function(){
+        return "Hello Hoang Hoang";
+    });
+
+
+// 9.1 Schema
+    route::prefix('schema')->group(function(){
+    //Tao bang
+       route::get('create-Table', function(){
+        Schema::create('Users',function($table){
+            $table->increments('idUser');  //khóa chính ở đây là khóa tự tạo
+            //Giả sử muốn khóa chính tự tạo
+                // $table->string('email');
+                // $table->primary('email');
+            $table->string('email',50)->default('Hoang@gmail.com');
+            $table->string('password',50);
+            $table->timestamps();
+        });
+       });
+    //sửa tên bảng
+       route::get('rename-table',function(){
+        Schema::rename('Users','User');
+       });
+    //Xóa bảng
+       route::get('drop-Table', function(){
+        Schema::dropIfExists('User');
+       });
+    //
+    //foreign-key
+    //Tao bang
+    route::get('create-Table-Infor', function(){
+        Schema::create('Infor',function($table){
+            $table->increments('idInfor');  //khóa chính ở đây là khóa tự tạo
+            $table->integer('id_number');
+            $table->string('address');
+            $table->integer('phone');
+            $table->integer('idUser')->unsigned();
+            //khai báo khóa ngoại
+            $table->foreign('idUser')->references('idUser')->on('Users')->onDelete('cascade');
+            // khóa ngoại 'idUser' của bảng Infor sẽ tham chiếu tới khóa chính 'idUser' của bảng Users
+            $table->timestamps();
+        });
+       });
+
+    //tác động đến cột trong bảng
+    //them cot
+       route::get('create-col', function(){
+           Schema::table('Users', function($table){
+               $table->string('col_new');
+           });
+       });
+    //Sua ten cot
+       route::get('rename-col', function(){
+           Schema::table('Users',function($table){
+               $table->renameColumn('col_new','col_new_new');
+           });
+       });
+
+    });
+    //
+
+    //bài 10_:  Query Builder Laravel
+    route::prefix('Query-Builder')->group(function(){
+        // insert gia tri vao hang
+        route::get('insert',function(){
+            DB::table('users')->insert([
+                ['email'=>'hoang@gmail.com','password'=>'11'],
+                ['email'=>'hao@gmail.com','password'=>'11'],
+                ['email'=>'hau@gmail.com','password'=>'11']
+            ]);
+        });
+        // sua du lieu
+        route::get('update',function(){
+            DB::table('users')
+            -> where('idUser','>',4)
+            ->update(['password'=>'333']);
+        });
+
+        // Xoa 
+        route::get('delete',function(){
+            DB::table('users')
+            ->where('idUser',4)
+            ->delete();
+        });
+        //get
+        route::get('get',function(){
+           $users= DB::table('users')->get();
+           dd($users);
+        });
+
+    //select cot trong bang
+        route::get('select1',function(){
+            $sel=DB::table('users')
+            ->select('idUser','email')
+            ->get();
+            dd($sel);
+        });
+    //distinct
+        route::get('distinct',function(){
+            $users = DB::table('users')->distinct()->select('password')->get();
+            dd($users);
+        });
+    //addSelect
+        route::get('addselect',function(){
+            $query = DB::table('users')->select('password');
+
+            $users = $query->addSelect('email')->get();
+            dd($users);
+        });
+    //avg
+        route::get('avg',function(){
+            $users=DB::table('users')
+            ->avg('idUser');
+            dd($users);
+        });
+    //between
+        route::get('between',function(){
+            $users=DB::table('users')
+            ->whereBetween('idUser',[5,6])->get();
+            dd($users);
+    });
+    //whereIn
+        route::get('whereIn',function(){
+            $users=DB::table('users')
+            ->whereNotIn('idUser',[5,6,7])->get();
+            dd($users);
+    });
+    //inner join
+        route::get('inner',function(){
+            $data=DB::table('users')
+            ->join('infor','users.idUser','=','infor.idUser')
+            ->select('users.idUser','infor.phone')
+            ->get();
+            dd($data);
+        });
+    //like
+        route::get('like',function(){
+            $data=DB::table('users')
+            ->where('email','LIKE','h%')
+            ->select('email')
+            ->get();
+            dd($data);
+        });
+
+    });
+
+
+--------------------------
+trong migration
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class CreateUsersTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('users', function (Blueprint $table) {
+            $table->increments('idUser');  //khóa chính ở đây là khóa tự tạo
+            //Giả sử muốn khóa chính tự tạo
+                // $table->string('email');
+                // $table->primary('email');
+            $table->string('email',50)->default('Hoang@gmail.com');
+            $table->string('password',50);
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('users');
+    }
+}
+
+------------------
+seeder
+<?php
+
+use Illuminate\Database\Seeder;
+
+class userSeed extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        $users = DB::table('users')->distinct()->select('password')->get();
+            dd($users);
+    }
+}
+
+//model
+route::prefix('model')->group(function(){
+
+    Route::get('all',function(){
+        $user=App\demo1::all()->toarray();
+        dd($user);
+    });
+    //get 1 line throught primary
+    Route::get('primary2',function(){
+        $user=App\demo1::find(5)->toarray();
+        dd($user);
+    });
+
+    Route::get('add',function(){
+        $user=new App\demo1;
+        $user->email ='long';
+        $user->password ='123';
+        $user->save();
+
+  
+    });
+});
+ 
+
+
+// sử dụng relationship 
+những phương thức:
+chính là chứa khóa chính.
+phụ là chứa khóa phụ.
+lk 1-1 chính->phụ  hasOne
+lk 1-1 phụ->chính  belongsTo
+lk 1-n 	  	   hasMany 
+lk n-n             belongstoMany
+
+viết trong model
+ public function tenlk(){ 
+	return $this->phuongthuc('model_muốn_lk','foreign_key_bản cần lấy ','local_keykhóa chính bảng hiện tại');
+	}
+1> Relationship 1-1
+2> Relationship n-n
+
+public function tenlk(){ 
+	return $this->phuongthuc('model_muốn_lk','<bảng trung gian>','khóa ngoại bảng hiện tại thông qua bảng  trung gian ','khóa ngoại  của bảng cần liên kết');
+	}
+   
+thông thường tên liên kết thường đặt là tên cái bảng định liên kết tới
+*chinh phu
+Route::get('lkchinh-phu',function(){
+    $users=App\user::all();
+    foreach($users as $user)
+    {
+        echo $user->address;
+        echo"<br>";
+        if($user->infor!=NULL){
+            echo $user->infor->city;
+        }
+   
+        echo "<hr>";
+    }
+});
+*phu chinh
+Route::get('lkphu-chinh',function(){
+    $infors=App\infor::all();
+    foreach($infors as $infor){
+        echo $infor->city;
+        echo"<br>";
+        echo $infor->user->phone; //
+        echo "<hr>";
+    }
+});
+*mot nhieu
+//lienket 1-n
+Route::get('lkmot-nhieu',function(){
+    $users=App\User::all();
+    foreach($users as $user){
+        echo  $user->address;
+        foreach($user->comment as $commet){
+            echo $commet->comt1;
+        }
+        echo "<hr>";
+    }
+});
+
